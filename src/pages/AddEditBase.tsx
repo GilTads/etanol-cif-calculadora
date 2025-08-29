@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MapPin, Trash2 } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -11,7 +11,7 @@ import { findMunicipalityByName } from '../data/municipalities';
 
 export default function AddEditBase() {
   const { id } = useParams();
-  const { addBase, updateBase, deleteBase, getBase } = useBases();
+  const { addBase, updateBase, getBase } = useBases();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isEdit = Boolean(id);
@@ -23,9 +23,6 @@ export default function AddEditBase() {
     latitude: '',
     longitude: ''
   });
-
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (isEdit && id) {
@@ -42,38 +39,23 @@ export default function AddEditBase() {
     }
   }, [id, isEdit, getBase]);
 
-  // Auto-suggest municipalities and auto-link latitude/longitude
+  // Auto-link latitude/longitude from municipality name as the user types
   useEffect(() => {
     const name = formData.name.trim();
-    if (name.length >= 2) {
-      // Get all municipality names from our database
-      import('../data/municipalities').then(({ municipalityNames }) => {
-        const filtered = municipalityNames
-          .filter(municipality => 
-            municipality.toLowerCase().includes(name.toLowerCase())
-          )
-          .slice(0, 10);
-        setSuggestions(filtered);
-        setShowSuggestions(filtered.length > 0);
-      });
+    if (!name) return;
 
-      // Auto-populate coordinates when exact match is found
-      const handle = setTimeout(() => {
-        const match = findMunicipalityByName(name);
-        if (match) {
-          setFormData((prev) => ({
-            ...prev,
-            latitude: match.latitude.toFixed(6),
-            longitude: match.longitude.toFixed(6),
-          }));
-        }
-      }, 250);
+    const handle = setTimeout(() => {
+      const match = findMunicipalityByName(name);
+      if (match) {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: match.latitude.toFixed(6),
+          longitude: match.longitude.toFixed(6),
+        }));
+      }
+    }, 250);
 
-      return () => clearTimeout(handle);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
+    return () => clearTimeout(handle);
   }, [formData.name]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -111,33 +93,6 @@ export default function AddEditBase() {
     }
 
     navigate('/bases');
-  };
-
-  const handleDelete = () => {
-    if (isEdit && id) {
-      deleteBase(id);
-      toast({
-        title: "Sucesso",
-        description: "Base excluída com sucesso"
-      });
-      navigate('/bases');
-    }
-  };
-
-  const selectSuggestion = (suggestion: string) => {
-    setFormData(prev => ({ ...prev, name: suggestion }));
-    setShowSuggestions(false);
-    
-    // Auto-populate coordinates
-    const match = findMunicipalityByName(suggestion);
-    if (match) {
-      setFormData(prev => ({
-        ...prev,
-        name: suggestion,
-        latitude: match.latitude.toFixed(6),
-        longitude: match.longitude.toFixed(6),
-      }));
-    }
   };
 
   const calculateDistance = async () => {
@@ -221,31 +176,13 @@ export default function AddEditBase() {
             <Label htmlFor="name" className="text-sm font-medium">
               Nome da Base
             </Label>
-            <div className="relative">
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                onFocus={() => setShowSuggestions(suggestions.length > 0)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                placeholder="Digite o nome do município..."
-                required
-              />
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
-                  {suggestions.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      className="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                      onClick={() => selectSuggestion(suggestion)}
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Ribeirão Preto"
+              required
+            />
           </div>
 
           {/* Valor do Frete */}
@@ -309,17 +246,6 @@ export default function AddEditBase() {
             >
               Salvar
             </Button>
-            {isEdit && (
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                onClick={handleDelete}
-                className="shrink-0"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
             <Button
               type="button"
               variant="outline"
