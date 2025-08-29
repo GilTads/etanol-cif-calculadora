@@ -3,6 +3,8 @@ export interface Base {
   name: string;
   freight: number;
   distance: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CIFCalculation {

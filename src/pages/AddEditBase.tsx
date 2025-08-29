@@ -7,6 +7,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useBases } from '../contexts/BasesContext';
 import { useToast } from '../hooks/use-toast';
+import { findMunicipalityByName } from '../data/municipalities';
 
 export default function AddEditBase() {
   const { id } = useParams();
@@ -18,7 +19,9 @@ export default function AddEditBase() {
   const [formData, setFormData] = useState({
     name: '',
     freight: '',
-    distance: ''
+    distance: '',
+    latitude: '',
+    longitude: ''
   });
 
   useEffect(() => {
@@ -28,7 +31,9 @@ export default function AddEditBase() {
         setFormData({
           name: base.name,
           freight: base.freight.toString(),
-          distance: base.distance.toString()
+          distance: base.distance.toString(),
+          latitude: base.latitude?.toString() || '',
+          longitude: base.longitude?.toString() || ''
         });
       }
     }
@@ -49,7 +54,9 @@ export default function AddEditBase() {
     const baseData = {
       name: formData.name.trim(),
       freight: parseFloat(formData.freight),
-      distance: parseInt(formData.distance)
+      distance: parseInt(formData.distance),
+      latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
+      longitude: formData.longitude ? parseFloat(formData.longitude) : undefined
     };
 
     if (isEdit && id) {
@@ -79,48 +86,48 @@ export default function AddEditBase() {
       return;
     }
 
-    try {
-      // Calculate distance from Nova Andradina, MS to the entered city
-      // Using Google Maps Distance Matrix API would be ideal here
-      // For now, simulating with realistic distances based on city name
-      const cityName = formData.name.trim().toLowerCase();
-      
-      // Predefined distances for common cities (in km from Nova Andradina, MS)
-      const knownDistances: Record<string, number> = {
-        'araçatuba': 280,
-        'araucária': 450,
-        'bauru': 340,
-        'betim': 590,
-        'brasília': 620,
-        'chapecó': 590,
-        'duque caxias': 950,
-        'esteio rs': 780,
-        'goiania': 520,
-        'guarapuava': 420,
-        'guarulhos': 450,
-        'itajaí sc': 650,
-        'jaraguá do sul': 680,
-        'londrina': 280,
-        'maringá': 220,
-        'ourinhos': 380,
-        'p. prudente': 120,
-        'paranaguá': 480,
-        'passo fundo': 620,
-        'paulinia': 420,
-        'são jose dos campos': 520,
-        'sarandi': 220,
-        'uberlândia': 450
-      };
+    const PLANT_COORDS = { lat: -22.2381, lng: -53.3432 }; // Nova Andradina - MS
 
-      let distance = knownDistances[cityName];
-      
-      if (!distance) {
-        // For unknown cities, simulate API call
-        // In production, this would call Google Maps Distance Matrix API:
-        // const response = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=Nova%20Andradina,MS&destinations=${encodeURIComponent(formData.name)}&key=${API_KEY}`);
-        distance = 300 + Math.floor(Math.random() * 400); // Simulated distance between 300-700km
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+      const R = 6371; // Earth radius in km
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    };
+
+    try {
+      let lat = formData.latitude ? parseFloat(formData.latitude) : undefined;
+      let lng = formData.longitude ? parseFloat(formData.longitude) : undefined;
+
+      if ((!lat || !lng) && formData.name.trim()) {
+        const match = findMunicipalityByName(formData.name.trim());
+        if (match) {
+          lat = match.latitude;
+          lng = match.longitude;
+          setFormData(prev => ({
+            ...prev,
+            latitude: match.latitude.toFixed(6),
+            longitude: match.longitude.toFixed(6)
+          }));
+        }
       }
 
+      if (lat === undefined || lng === undefined) {
+        toast({
+          title: "Coordenadas não encontradas",
+          description: "Informe latitude e longitude ou corrija o nome do município.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const distance = Math.round(haversineKm(PLANT_COORDS.lat, PLANT_COORDS.lng, lat, lng));
       setFormData(prev => ({ ...prev, distance: distance.toString() }));
       
       toast({
