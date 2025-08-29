@@ -55,3 +55,8 @@ export function findMunicipalityByName(name: string): Municipality | null {
   const key = normalize(name);
   return data[key] || null;
 }
+
+// Export list of municipality names for autocomplete
+export const municipalityNames = Object.keys(data).map(key => data[key].name)
+  .filter((name, index, arr) => arr.indexOf(name) === index) // Remove duplicates
+  .sort();
