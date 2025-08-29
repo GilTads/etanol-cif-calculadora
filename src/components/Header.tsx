@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 
@@ -14,18 +14,29 @@ export function Header({ title, showBack = false, className = '' }: HeaderProps)
 
   return (
     <header className={`bg-primary text-primary-foreground p-4 ${className}`}>
-      <div className="flex items-center gap-3">
-        {showBack && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="text-primary-foreground hover:bg-primary-light"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        )}
-        <h1 className="text-lg font-semibold">{title}</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {showBack && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="text-primary-foreground hover:bg-primary-light"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          <h1 className="text-lg font-semibold">{title}</h1>
+        </div>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="text-primary-foreground hover:bg-primary-light"
+        >
+          <Home className="h-5 w-5" />
+        </Button>
       </div>
     </header>
   );
