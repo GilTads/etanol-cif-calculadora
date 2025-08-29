@@ -39,6 +39,25 @@ export default function AddEditBase() {
     }
   }, [id, isEdit, getBase]);
 
+  // Auto-link latitude/longitude from municipality name as the user types
+  useEffect(() => {
+    const name = formData.name.trim();
+    if (!name) return;
+
+    const handle = setTimeout(() => {
+      const match = findMunicipalityByName(name);
+      if (match) {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: match.latitude.toFixed(6),
+          longitude: match.longitude.toFixed(6),
+        }));
+      }
+    }, 250);
+
+    return () => clearTimeout(handle);
+  }, [formData.name]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -86,7 +105,7 @@ export default function AddEditBase() {
       return;
     }
 
-    const PLANT_COORDS = { lat: -22.2381, lng: -53.3432 }; // Nova Andradina - MS
+    const PLANT_COORDS = { lat: -21.997204, lng: -53.425025 }; // Energética Santa Helena - Nova Andradina - MS
 
     const toRad = (deg: number) => (deg * Math.PI) / 180;
     const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
