@@ -24,9 +24,15 @@ export default function AddEditBase() {
     longitude: ''
   });
 
-  const [googleApiKey, setGoogleApiKey] = useState(
-    localStorage.getItem('googleMapsApiKey') || ''
-  );
+  const handleMunicipalitySelect = (municipality: { name: string; state: string; latitude?: number; longitude?: number }) => {
+    setFormData(prev => ({
+      ...prev,
+      name: municipality.name,
+      latitude: municipality.latitude?.toString() || '',
+      longitude: municipality.longitude?.toString() || ''
+    }));
+
+  };
 
   useEffect(() => {
     if (isEdit && id) {
@@ -42,13 +48,6 @@ export default function AddEditBase() {
       }
     }
   }, [id, isEdit, getBase]);
-
-  // Save API key to localStorage
-  useEffect(() => {
-    if (googleApiKey) {
-      localStorage.setItem('googleMapsApiKey', googleApiKey);
-    }
-  }, [googleApiKey]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,17 +157,8 @@ export default function AddEditBase() {
             </Label>
             <MunicipalitySelect
               value={formData.name}
-              onSelect={(municipality) => {
-                setFormData(prev => ({
-                  ...prev,
-                  name: municipality.name,
-                  latitude: municipality.latitude.toString(),
-                  longitude: municipality.longitude.toString()
-                }));
-              }}
+              onSelect={handleMunicipalitySelect}
               onInputChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
-              apiKey={googleApiKey}
-              onApiKeyChange={setGoogleApiKey}
             />
           </div>
 
