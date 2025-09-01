@@ -28,9 +28,42 @@ export default function AddEditBase() {
     setFormData(prev => ({
       ...prev,
       name: municipality.name,
-      latitude: municipality.latitude?.toString() || '',
-      longitude: municipality.longitude?.toString() || ''
+      latitude: municipality.latitude?.toFixed(6) || '',
+      longitude: municipality.longitude?.toFixed(6) || ''
     }));
+
+    // Automatically calculate distance when coordinates are available
+    if (municipality.latitude && municipality.longitude) {
+      setTimeout(() => {
+        const PLANT_COORDS = { lat: -21.997204, lng: -53.425025 };
+        const toRad = (deg: number) => (deg * Math.PI) / 180;
+        const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+          const R = 6371;
+          const dLat = toRad(lat2 - lat1);
+          const dLon = toRad(lon2 - lon1);
+          const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return R * c;
+        };
+
+        const distance = Math.round(haversineKm(
+          PLANT_COORDS.lat, 
+          PLANT_COORDS.lng, 
+          municipality.latitude!, 
+          municipality.longitude!
+        ));
+
+        setFormData(prev => ({ ...prev, distance: distance.toString() }));
+        
+        toast({
+          title: "Distância calculada automaticamente",
+          description: `${municipality.name} está a ${distance} km de Nova Andradina`
+        });
+      }, 100);
+    }
 
   };
 
@@ -96,6 +129,15 @@ export default function AddEditBase() {
       return;
     }
 
+    if (!formData.latitude || !formData.longitude) {
+      toast({
+        title: "Erro",
+        description: "Coordenadas não encontradas para o município selecionado",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const PLANT_COORDS = { lat: -21.997204, lng: -53.425025 }; // Energética Santa Helena - Nova Andradina - MS
 
     const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -112,14 +154,13 @@ export default function AddEditBase() {
     };
 
     try {
-      let lat = formData.latitude ? parseFloat(formData.latitude) : undefined;
-      let lng = formData.longitude ? parseFloat(formData.longitude) : undefined;
+      const lat = parseFloat(formData.latitude);
+      const lng = parseFloat(formData.longitude);
 
-
-      if (lat === undefined || lng === undefined) {
+      if (isNaN(lat) || isNaN(lng)) {
         toast({
-          title: "Coordenadas não encontradas",
-          description: "Informe latitude e longitude ou corrija o nome do município.",
+          title: "Erro",
+          description: "Coordenadas inválidas",
           variant: "destructive"
         });
         return;
