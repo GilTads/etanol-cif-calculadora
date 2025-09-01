@@ -7,7 +7,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useBases } from '../contexts/BasesContext';
 import { useToast } from '../hooks/use-toast';
-import { findMunicipalityByName } from '../data/municipalities';
+import { MunicipalitySelect } from '../components/MunicipalitySelect';
 
 export default function AddEditBase() {
   const { id } = useParams();
@@ -24,6 +24,10 @@ export default function AddEditBase() {
     longitude: ''
   });
 
+  const [googleApiKey, setGoogleApiKey] = useState(
+    localStorage.getItem('googleMapsApiKey') || ''
+  );
+
   useEffect(() => {
     if (isEdit && id) {
       const base = getBase(id);
@@ -39,24 +43,12 @@ export default function AddEditBase() {
     }
   }, [id, isEdit, getBase]);
 
-  // Auto-link latitude/longitude from municipality name as the user types
+  // Save API key to localStorage
   useEffect(() => {
-    const name = formData.name.trim();
-    if (!name) return;
-
-    const handle = setTimeout(() => {
-      const match = findMunicipalityByName(name);
-      if (match) {
-        setFormData((prev) => ({
-          ...prev,
-          latitude: match.latitude.toFixed(6),
-          longitude: match.longitude.toFixed(6),
-        }));
-      }
-    }, 250);
-
-    return () => clearTimeout(handle);
-  }, [formData.name]);
+    if (googleApiKey) {
+      localStorage.setItem('googleMapsApiKey', googleApiKey);
+    }
+  }, [googleApiKey]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,18 +116,6 @@ export default function AddEditBase() {
       let lat = formData.latitude ? parseFloat(formData.latitude) : undefined;
       let lng = formData.longitude ? parseFloat(formData.longitude) : undefined;
 
-      if ((!lat || !lng) && formData.name.trim()) {
-        const match = findMunicipalityByName(formData.name.trim());
-        if (match) {
-          lat = match.latitude;
-          lng = match.longitude;
-          setFormData(prev => ({
-            ...prev,
-            latitude: match.latitude.toFixed(6),
-            longitude: match.longitude.toFixed(6)
-          }));
-        }
-      }
 
       if (lat === undefined || lng === undefined) {
         toast({
@@ -174,14 +154,21 @@ export default function AddEditBase() {
           {/* Nome da Base */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium">
-              Nome da Base
+              Nome da Base (Município)
             </Label>
-            <Input
-              id="name"
+            <MunicipalitySelect
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Ribeirão Preto"
-              required
+              onSelect={(municipality) => {
+                setFormData(prev => ({
+                  ...prev,
+                  name: municipality.name,
+                  latitude: municipality.latitude.toString(),
+                  longitude: municipality.longitude.toString()
+                }));
+              }}
+              onInputChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
+              apiKey={googleApiKey}
+              onApiKeyChange={setGoogleApiKey}
             />
           </div>
 
