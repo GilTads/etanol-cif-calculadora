@@ -35,7 +35,7 @@ export default function AddEditBase() {
     // Automatically calculate distance when coordinates are available
     if (municipality.latitude && municipality.longitude) {
       setTimeout(() => {
-        const PLANT_COORDS = { lat: -22.2263333, lng: -53.3390000 };
+        const PLANT_COORDS = { lat: -21.99697898033876, lng: -53.4245843463931 };
         const toRad = (deg: number) => (deg * Math.PI) / 180;
         const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
           const R = 6371;
@@ -138,7 +138,7 @@ export default function AddEditBase() {
       return;
     }
 
-    const PLANT_COORDS = { lat: -22.2263333, lng: -53.3390000 }; // Energética Santa Helena - Nova Andradina - MS
+    const PLANT_COORDS = { lat: -21.99697898033876, lng: -53.4245843463931 }; // Energética Santa Helena - MS
 
     const toRad = (deg: number) => (deg * Math.PI) / 180;
     const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
