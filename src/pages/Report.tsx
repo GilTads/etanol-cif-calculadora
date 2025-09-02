@@ -34,9 +34,9 @@ export default function Report() {
       
       message += `${base.name}\n`;
       message += `Distância: ${base.distance} km\n`;
-      message += `Frete: R$ ${base.freight.toFixed(2)}\n`;
+      message += `Frete total: R$ ${base.freight.toFixed(2)}\n`;
       if (showFreightPerKm) {
-        message += `Frete/km: R$ ${freightPerKm.toFixed(2)}\n`;
+        message += `Frete por km: R$ ${freightPerKm.toFixed(2)}\n`;
       }
       message += `CIF: R$ ${cifPrice.toFixed(2)}\n\n`;
     });
@@ -90,7 +90,7 @@ export default function Report() {
             <div className={`grid gap-2 text-xs font-medium ${showFreightPerKm ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <div>Base</div>
               <div className="text-center">Distância (km)</div>
-              <div className="text-center">Frete (R$)</div>
+              <div className="text-center">CIF (R$)</div>
               {showFreightPerKm && <div className="text-center">Frete/km (R$)</div>}
             </div>
           </div>
@@ -105,7 +105,7 @@ export default function Report() {
                   <div className={`grid gap-2 text-xs ${showFreightPerKm ? 'grid-cols-4' : 'grid-cols-3'}`}>
                     <div className="font-medium">{base.name}</div>
                     <div className="text-center">{base.distance}</div>
-                    <div className="text-center">{base.freight.toFixed(2)}</div>
+                    <div className="text-center">{cifPrice.toFixed(2)}</div>
                     {showFreightPerKm && <div className="text-center">{freightPerKm.toFixed(2)}</div>}
                   </div>
                 </div>
