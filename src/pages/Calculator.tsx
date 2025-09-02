@@ -53,20 +53,14 @@ export default function Calculator() {
   const shareViaWhatsApp = () => {
     if (!result) return;
 
-    let message = `Cálculo de Preço CIF
+    const message = `Cálculo de Preço CIF
 Energética Santa Helena
 
 Base: ${result.base}
 Preço FOB: R$ ${result.fobPrice.toFixed(2)}
-Frete total: R$ ${result.freight.toFixed(2)}
-Distância: ${result.distance} km`;
-    
-    if (showFreightPerKm) {
-      message += `
-Frete por km: R$ ${result.freightPerKm.toFixed(2)}`;
-    }
-    
-    message += `
+Frete: R$ ${result.freight.toFixed(2)}
+Distância: ${result.distance} km
+${showFreightPerKm ? `Valor do frete por km: R$ ${result.freightPerKm.toFixed(2)}` : ''}
 Preço CIF: R$ ${result.cifPrice.toFixed(2)}`;
 
     const encodedMessage = encodeURIComponent(message);
@@ -125,16 +119,11 @@ Preço CIF: R$ ${result.cifPrice.toFixed(2)}`;
           {selectedBase && (
             <div className="bg-muted/30 p-3 rounded-lg space-y-1">
               <p className="text-sm">
-                Frete total: R$ {selectedBase.freight.toFixed(2)}
+                Frete: R$ {selectedBase.freight.toFixed(2)} por km
               </p>
               <p className="text-sm">
                 Distância da base: {selectedBase.distance} km
               </p>
-              {showFreightPerKm && (
-                <p className="text-sm">
-                  Frete por km: R$ {(selectedBase.freight / selectedBase.distance).toFixed(2)}
-                </p>
-              )}
             </div>
           )}
 
@@ -182,10 +171,10 @@ Preço CIF: R$ ${result.cifPrice.toFixed(2)}`;
                 <div><strong>Energética Santa Helena</strong></div>
                 <div>Base: {result.base}</div>
                 <div>Preço FOB: R$ {result.fobPrice.toFixed(2)}</div>
-                <div>Frete total: R$ {result.freight.toFixed(2)}</div>
+                <div>Frete: R$ {result.freight.toFixed(2)}</div>
                 <div>Distância: {result.distance} km</div>
                 {showFreightPerKm && (
-                  <div>Frete por km: R$ {result.freightPerKm.toFixed(2)}</div>
+                  <div>Valor do frete por km: R$ {result.freightPerKm.toFixed(2)}</div>
                 )}
                 <div><strong>Preço CIF: R$ {result.cifPrice.toFixed(2)}</strong></div>
               </div>
