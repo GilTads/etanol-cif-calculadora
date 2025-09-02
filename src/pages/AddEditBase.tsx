@@ -35,7 +35,7 @@ export default function AddEditBase() {
     // Automatically calculate distance when coordinates are available
     if (municipality.latitude && municipality.longitude) {
       setTimeout(() => {
-        const PLANT_COORDS = { lat: -21.997204, lng: -53.425025 };
+        const PLANT_COORDS = { lat: -21.99697898033876, lng: -53.4245843463931 };
         const toRad = (deg: number) => (deg * Math.PI) / 180;
         const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
           const R = 6371;
@@ -60,7 +60,7 @@ export default function AddEditBase() {
         
         toast({
           title: "Distância calculada automaticamente",
-          description: `${municipality.name} está a ${distance} km de Nova Andradina`
+          description: `${municipality.name} está a ${distance} km da Energética Santa Helena`
         });
       }, 100);
     }
@@ -138,7 +138,7 @@ export default function AddEditBase() {
       return;
     }
 
-    const PLANT_COORDS = { lat: -21.997204, lng: -53.425025 }; // Energética Santa Helena - Nova Andradina - MS
+    const PLANT_COORDS = { lat: -21.99697898033876, lng: -53.4245843463931 }; // Energética Santa Helena - MS
 
     const toRad = (deg: number) => (deg * Math.PI) / 180;
     const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -171,7 +171,7 @@ export default function AddEditBase() {
       
       toast({
         title: "Distância calculada",
-        description: `Distância de Nova Andradina até ${formData.name}: ${distance} km`
+        description: `Distância da Energética Santa Helena até ${formData.name}: ${distance} km`
       });
     } catch (error) {
       toast({
