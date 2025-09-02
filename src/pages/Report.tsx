@@ -87,11 +87,11 @@ export default function Report() {
         {/* Report Table */}
         <div className="bg-card border rounded-lg overflow-hidden mb-6">
           <div className="bg-muted p-3">
-            <div className="grid grid-cols-4 gap-2 text-xs font-medium">
+            <div className={`grid gap-2 text-xs font-medium ${showFreightPerKm ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <div>Base</div>
               <div className="text-center">Distância (km)</div>
               <div className="text-center">Frete (R$)</div>
-              <div className="text-center">Frete/km (R$)</div>
+              {showFreightPerKm && <div className="text-center">Frete/km (R$)</div>}
             </div>
           </div>
           
@@ -102,11 +102,11 @@ export default function Report() {
               
               return (
                 <div key={base.id} className="p-3">
-                  <div className="grid grid-cols-4 gap-2 text-xs">
+                  <div className={`grid gap-2 text-xs ${showFreightPerKm ? 'grid-cols-4' : 'grid-cols-3'}`}>
                     <div className="font-medium">{base.name}</div>
                     <div className="text-center">{base.distance}</div>
                     <div className="text-center">{base.freight.toFixed(2)}</div>
-                    <div className="text-center">{cifPrice.toFixed(2)}</div>
+                    {showFreightPerKm && <div className="text-center">{freightPerKm.toFixed(2)}</div>}
                   </div>
                 </div>
               );
