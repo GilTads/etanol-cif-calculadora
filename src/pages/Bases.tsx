@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Trash2 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '../components/ui/alert-dialog';
 import { useBases } from '../contexts/BasesContext';
 import { useNavigate } from 'react-router-dom';
 import { Base } from '../types';
 
 export default function Bases() {
-  const { bases } = useBases();
+  const { bases, deleteBase } = useBases();
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -18,6 +29,10 @@ export default function Bases() {
 
   const handleEditBase = (base: Base) => {
     navigate(`/bases/edit/${base.id}`);
+  };
+
+  const handleDeleteBase = async (baseId: string) => {
+    await deleteBase(baseId);
   };
 
   return (
@@ -61,13 +76,43 @@ export default function Bases() {
                     Distância: {base.distance} km
                   </p>
                 </div>
-                <Button
-                  onClick={() => handleEditBase(base)}
-                  className="bg-primary hover:bg-primary-light text-primary-foreground"
-                  size="sm"
-                >
-                  Editar Frete
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleEditBase(base)}
+                    className="bg-primary hover:bg-primary-light text-primary-foreground"
+                    size="sm"
+                  >
+                    Editar Frete
+                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir Base</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir a base "{base.name}"? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteBase(base.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             </div>
           ))}
