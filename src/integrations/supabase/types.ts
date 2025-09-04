@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bases: {
+        Row: {
+          created_at: string
+          distance: number
+          freight: number
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          distance: number
+          freight: number
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          distance?: number
+          freight?: number
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
