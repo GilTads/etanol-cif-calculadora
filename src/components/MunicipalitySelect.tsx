@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { Input } from './ui/input';
+import { Spinner } from './ui/spinner';
 
 interface Municipality {
   id: number;
@@ -154,7 +155,7 @@ export function MunicipalitySelect({ value, onSelect, onInputChange }: Municipal
         />
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
           {loading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            <Spinner size="sm" />
           ) : (
             <Search className="h-4 w-4 text-muted-foreground" />
           )}
