@@ -14,8 +14,8 @@ serve(async (req) => {
     const { destinationLat, destinationLng } = await req.json()
     
     const PLANT_COORDINATES = {
-      lat: -22.2263333,
-      lng: -53.3390000
+      lat: -21.99706851064158,
+      lng: -53.423919158273875
     }
 
     // Obter a chave da API do Google Maps dos secrets
