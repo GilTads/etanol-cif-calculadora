@@ -11,8 +11,8 @@ import { MunicipalitySelect } from '../components/MunicipalitySelect';
 
 // Coordenadas da Energética Santa Helena - Nova Andradina/MS
 const PLANT_COORDINATES = {
-  lat: -22.2263333,
-  lng: -53.3390000
+  lat: -21.99706851064158,
+  lng: -53.423919158273875
 };
 
 async function calculateRoadDistance(

@@ -40,7 +40,7 @@ export default function Home() {
             className="mx-auto mb-6 h-24 w-auto"
           />
           <h1 className="text-2xl font-bold text-primary mb-2">
-            Energética Santa Helena
+            Calculadora CIF
           </h1>
         </div>
 
