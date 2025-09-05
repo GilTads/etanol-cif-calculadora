@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 // Coordenadas da Energética Santa Helena - Nova Andradina/MS
 const PLANT_COORDINATES = {
   lat: -22.2263333,
@@ -9,24 +11,20 @@ export async function calculateRoadDistance(
   destinationLng: number
 ): Promise<number> {
   try {
-    // Usando OpenRouteService como alternativa gratuita ao Google Maps
-    const response = await fetch(
-      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248e8b1b3e8d8f64e4b91fb82b8a5c3b407&start=${PLANT_COORDINATES.lng},${PLANT_COORDINATES.lat}&end=${destinationLng},${destinationLat}`
-    );
+    // Usar a Edge Function que integra com Google Maps API
+    const { data, error } = await supabase.functions.invoke('calculate-distance', {
+      body: { destinationLat, destinationLng }
+    });
 
-    if (!response.ok) {
-      throw new Error('Erro ao consultar serviço de rotas');
+    if (error) {
+      throw new Error(error.message);
     }
 
-    const data = await response.json();
-    
-    if (data.features && data.features[0] && data.features[0].properties) {
-      // Distância em metros, converter para quilômetros
-      const distanceInKm = Math.round(data.features[0].properties.segments[0].distance / 1000);
-      return distanceInKm;
+    if (data.error && data.fallback) {
+      throw new Error('Google Maps API failed, using fallback');
     }
 
-    throw new Error('Rota não encontrada');
+    return data.distance;
   } catch (error) {
     console.error('Erro ao calcular distância por rota:', error);
     
