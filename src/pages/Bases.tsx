@@ -17,9 +17,10 @@ import {
 import { useBases } from '../contexts/BasesContext';
 import { useNavigate } from 'react-router-dom';
 import { Base } from '../types';
+import { Spinner } from '../components/ui/spinner';
 
 export default function Bases() {
-  const { bases, deleteBase } = useBases();
+  const { bases, deleteBase, loading } = useBases();
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -34,6 +35,17 @@ export default function Bases() {
   const handleDeleteBase = async (baseId: string) => {
     await deleteBase(baseId);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header title="Bases e Fretes" showBack />
+        <div className="flex items-center justify-center pt-20">
+          <Spinner size="lg" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
