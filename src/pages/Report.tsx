@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useBases } from '../contexts/BasesContext';
 import { useToast } from '../hooks/use-toast';
+import jsPDF from 'jspdf';
 
 export default function Report() {
   const { bases, showFreightPerKm } = useBases();
@@ -48,9 +49,54 @@ export default function Report() {
   };
 
   const exportPDF = () => {
+    const doc = new jsPDF();
+    const fob = parseFloat(fobPrice);
+    
+    // Header
+    doc.setFontSize(16);
+    doc.text('Relatório Comparativo', 20, 30);
+    doc.text('Energética Santa Helena', 20, 40);
+    
+    doc.setFontSize(12);
+    doc.text(`Preço FOB: R$ ${fob.toFixed(2)}`, 20, 55);
+    
+    // Table header
+    doc.setFontSize(10);
+    doc.text('Base', 20, 75);
+    doc.text('Distância (km)', 60, 75);
+    doc.text('Frete (R$)', 100, 75);
+    doc.text('Frete/km (R$)', 140, 75);
+    doc.text('CIF (R$)', 180, 75);
+    
+    // Draw line under header
+    doc.line(20, 78, 200, 78);
+    
+    // Table data
+    let yPos = 88;
+    bases.forEach(base => {
+      const freightPerKm = base.freight / base.distance;
+      const cifPrice = calculateCIF(base);
+      
+      doc.text(base.name.substring(0, 15), 20, yPos);
+      doc.text(base.distance.toString(), 60, yPos);
+      doc.text(base.freight.toFixed(2), 100, yPos);
+      doc.text(freightPerKm.toFixed(2), 140, yPos);
+      doc.text(cifPrice.toFixed(2), 180, yPos);
+      
+      yPos += 10;
+    });
+    
+    // Footer
+    const now = new Date();
+    doc.setFontSize(8);
+    doc.text(`Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR')}`, 20, yPos + 20);
+    
+    // Save the PDF
+    doc.save(`relatorio-comparativo-${now.toISOString().split('T')[0]}.pdf`);
+    
     toast({
-      title: "Exportar PDF",
-      description: "Funcionalidade em desenvolvimento"
+      title: "PDF exportado com sucesso",
+      description: "O arquivo foi baixado para o seu dispositivo"
     });
   };
 
