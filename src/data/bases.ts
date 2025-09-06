@@ -1,7 +1,7 @@
 import { Base } from '../types';
 
 export const initialBases: Base[] = [
-  { id: '1', name: 'Araçatuba', freight: 160.00, distance: 416, latitude: -21.2076, longitude: -50.4401 },
+  { id: '1', name: 'Araçatuba', freight: 160.00, distance: 417, latitude: -21.2076, longitude: -50.4401 },
   { id: '2', name: 'Araucária', freight: 180.00, distance: 743, latitude: -25.5850, longitude: -49.4044 },
   { id: '3', name: 'Bauru', freight: 150.00, distance: 585, latitude: -22.3145, longitude: -49.0587 },
   { id: '4', name: 'Betim', freight: 450.00, distance: 1280, latitude: -19.9679, longitude: -44.1980 },
