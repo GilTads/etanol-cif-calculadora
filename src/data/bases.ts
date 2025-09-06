@@ -17,7 +17,7 @@ export const initialBases: Base[] = [
   { id: '14', name: 'Londrina', freight: 120.00, distance: 340, latitude: -23.3045, longitude: -51.1696 },
   { id: '15', name: 'Maringá', freight: 110.00, distance: 320, latitude: -23.4205, longitude: -51.9330 },
   { id: '16', name: 'Ourinhos', freight: 160.00, distance: 280, latitude: -22.9795, longitude: -49.8707 },
-  { id: '17', name: 'P. Prudente', freight: 120.00, distance: 200, latitude: -22.1212, longitude: -51.3925 },
+  { id: '17', name: 'Presidente Prudente', freight: 120.00, distance: 200, latitude: -22.1212, longitude: -51.3925 },
   { id: '18', name: 'Paranaguá', freight: 200.00, distance: 430, latitude: -25.5205, longitude: -48.5091 },
   { id: '19', name: 'Passo Fundo', freight: 330.00, distance: 580, latitude: -28.2576, longitude: -52.4061 },
   { id: '20', name: 'Paulínia', freight: 190.00, distance: 495, latitude: -22.7543, longitude: -47.1488 },
