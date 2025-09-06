@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.a7f23cd0db344e0c9a8f8018c5b9ee34',
-  appName: 'etanol-cif-calculadora',
+  appName: 'SH - CIF',
   webDir: 'dist',
   // server: {
   //   url: 'https://a7f23cd0-db34-4e0c-9a8f-8018c5b9ee34.lovableproject.com?forceHideBadge=true',
