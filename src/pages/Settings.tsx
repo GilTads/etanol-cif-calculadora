@@ -11,7 +11,7 @@ export default function Settings() {
     <div className="min-h-screen bg-background">
       <Header title="Configurações" showBack />
       
-      <div className="container mx-auto px-4 py-6 max-w-md">
+      <div className="container mx-auto px-4 py-6 max-w-md content-container">
         {/* Freight per km setting */}
         <div className="bg-card border rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between mb-3">

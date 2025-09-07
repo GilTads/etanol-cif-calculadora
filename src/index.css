@@ -6,6 +6,10 @@
 All colors MUST be HSL.
 */
 
+.content-container {
+  padding-top: 110px; /* Ajuste este valor conforme a altura do seu header */
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

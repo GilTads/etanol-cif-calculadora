@@ -74,7 +74,7 @@ Preço CIF: R$ ${result.cifPrice.toFixed(2)}`;
     <div className="min-h-screen bg-background">
       <Header title="Calcular Preço CIF" showBack />
       
-      <div className="container mx-auto px-4 py-6 max-w-md">
+      <div className="container mx-auto px-4 py-6 max-w-md content-container">
         <form onSubmit={(e) => { e.preventDefault(); calculateCIF(); }} className="space-y-6">
           {/* Preço FOB */}
           <div className="space-y-2">

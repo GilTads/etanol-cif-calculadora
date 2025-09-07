@@ -226,7 +226,7 @@ export default function AddEditBase() {
         showBack 
       />
       
-      <div className="container mx-auto px-4 py-6 max-w-md">
+      <div className="container mx-auto px-4 py-6 max-w-md content-container">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Nome da Base */}
           <div className="space-y-2">

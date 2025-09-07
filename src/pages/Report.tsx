@@ -6,6 +6,8 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useBases } from '../contexts/BasesContext';
 import { useToast } from '../hooks/use-toast';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import jsPDF from 'jspdf';
 
 export default function Report() {
@@ -48,63 +50,128 @@ export default function Report() {
     window.open(whatsappUrl, '_blank');
   };
 
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    const fob = parseFloat(fobPrice);
-    
-    // Header
-    doc.setFontSize(16);
-    doc.text('Relatório Comparativo', 20, 30);
-    doc.text('Energética Santa Helena', 20, 40);
-    
-    doc.setFontSize(12);
-    doc.text(`Preço FOB: R$ ${fob.toFixed(2)}`, 20, 55);
-    
-    // Table header
-    doc.setFontSize(10);
-    doc.text('Base', 20, 75);
-    doc.text('Distância (km)', 60, 75);
-    doc.text('Frete (R$)', 100, 75);
-    doc.text('Frete/km (R$)', 140, 75);
-    doc.text('CIF (R$)', 180, 75);
-    
-    // Draw line under header
-    doc.line(20, 78, 200, 78);
-    
-    // Table data
-    let yPos = 88;
-    bases.forEach(base => {
-      const freightPerKm = base.freight / base.distance;
-      const cifPrice = calculateCIF(base);
+  const exportPDF = async () => {
+    try {
+      const doc = new jsPDF();
+      const fob = parseFloat(fobPrice);
       
-      doc.text(base.name.substring(0, 15), 20, yPos);
-      doc.text(base.distance.toString(), 60, yPos);
-      doc.text(base.freight.toFixed(2), 100, yPos);
-      doc.text(freightPerKm.toFixed(2), 140, yPos);
-      doc.text(cifPrice.toFixed(2), 180, yPos);
+      // Variáveis para controle da posição e margens
+      let yPos = 30; // Posição inicial Y
+      const margin = 20; // Margem
+      const lineHeight = 10; // Espaçamento entre as linhas
+      const pageHeight = doc.internal.pageSize.height;
+      const contentHeightLimit = pageHeight - (margin * 2);
+
+      // --- Cabeçalho do Relatório ---
+      doc.setFontSize(16);
+      doc.text('Relatório Comparativo', margin, yPos);
+      yPos += lineHeight;
+      doc.text('Energética Santa Helena', margin, yPos);
+      yPos += lineHeight * 2;
       
-      yPos += 10;
-    });
-    
-    // Footer
-    const now = new Date();
-    doc.setFontSize(8);
-    doc.text(`Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR')}`, 20, yPos + 20);
-    
-    // Save the PDF
-    doc.save(`relatorio-comparativo-${now.toISOString().split('T')[0]}.pdf`);
-    
-    toast({
-      title: "PDF exportado com sucesso",
-      description: "O arquivo foi baixado para o seu dispositivo"
-    });
+      doc.setFontSize(12);
+      doc.text(`Preço FOB: R$ ${fob.toFixed(2)}`, margin, yPos);
+      yPos += lineHeight * 2;
+
+      // --- Cabeçalho da Tabela ---
+      doc.setFontSize(10);
+      doc.text('Base', margin, yPos);
+      doc.text('Distância (km)', margin + 40, yPos);
+      doc.text('Frete (R$)', margin + 80, yPos);
+      if (showFreightPerKm) {
+        doc.text('Frete/km (R$)', margin + 120, yPos);
+      }
+      doc.text('CIF (R$)', margin + (showFreightPerKm ? 160 : 120), yPos);
+      yPos += lineHeight;
+      doc.line(margin, yPos - 2, doc.internal.pageSize.width - margin, yPos - 2);
+      yPos += lineHeight / 2;
+
+      // --- Dados da Tabela ---
+      bases.forEach(base => {
+        // Lógica de quebra de página
+        if (yPos + lineHeight * 2 > contentHeightLimit) {
+          doc.addPage();
+          yPos = margin;
+          doc.setFontSize(10);
+          doc.text('Base', margin, yPos);
+          doc.text('Distância (km)', margin + 40, yPos);
+          doc.text('Frete (R$)', margin + 80, yPos);
+          if (showFreightPerKm) {
+            doc.text('Frete/km (R$)', margin + 120, yPos);
+          }
+          doc.text('CIF (R$)', margin + (showFreightPerKm ? 160 : 120), yPos);
+          yPos += lineHeight;
+          doc.line(margin, yPos - 2, doc.internal.pageSize.width - margin, yPos - 2);
+          yPos += lineHeight / 2;
+        }
+
+        const freightPerKm = base.freight / base.distance;
+        const cifPrice = calculateCIF(base);
+        
+        doc.text(base.name.substring(0, 15), margin, yPos);
+        doc.text(base.distance.toString(), margin + 40, yPos);
+        doc.text(base.freight.toFixed(2), margin + 80, yPos);
+        if (showFreightPerKm) {
+          doc.text(freightPerKm.toFixed(2), margin + 120, yPos);
+        }
+        doc.text(cifPrice.toFixed(2), margin + (showFreightPerKm ? 160 : 120), yPos);
+        yPos += lineHeight;
+      });
+      
+      // --- Rodapé ---
+      const now = new Date();
+      doc.setFontSize(8);
+      if (yPos + lineHeight * 3 > contentHeightLimit) {
+        doc.addPage();
+        yPos = margin;
+      }
+      doc.text(`Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR')}`, margin, yPos + (lineHeight * 2));
+      
+      // Converte o PDF para Base64
+      const pdfOutput = doc.output('datauristring');
+      const pdfData = pdfOutput.split(',')[1];
+      
+      const fileName = `relatorio-comparativo-${now.toISOString().split('T')[0]}.pdf`;
+      
+      // Salva o PDF
+      await Filesystem.writeFile({
+        path: fileName,
+        data: pdfData,
+        directory: Directory.Documents,
+      });
+
+      // Abre a caixa de diálogo para compartilhamento/visualização
+      const uriResult = await Filesystem.getUri({
+        directory: Directory.Documents,
+        path: fileName
+      });
+
+      await Share.share({
+        title: 'Relatório Comparativo',
+        text: 'Confira o relatório em PDF que foi gerado.',
+        url: uriResult.uri,
+        dialogTitle: 'Compartilhar Relatório',
+      });
+
+      toast({
+        title: "PDF gerado com sucesso",
+        description: "O arquivo foi salvo e aberto para visualização."
+      });
+
+    } catch (error) {
+      console.error('Erro ao exportar/compartilhar PDF:', error);
+      toast({
+        title: "Erro ao exportar PDF",
+        description: "Houve um problema ao salvar ou abrir o arquivo."
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header title="Relatório Comparativo" showBack />
       
-      <div className="container mx-auto px-4 py-6 max-w-md">
+      <div className="container mx-auto px-4 py-6 max-w-md content-container">
         {/* FOB Price Input */}
         <div className="mb-6 space-y-3">
           <Label className="text-sm font-medium">Preço FOB</Label>

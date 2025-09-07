@@ -13,8 +13,8 @@ export function Header({ title, showBack = false, className = '' }: HeaderProps)
   const navigate = useNavigate();
 
   return (
-    <header className={`bg-primary text-primary-foreground p-4 ${className}`}>
-      <div className="flex items-center justify-between">
+    <header className={`fixed top-0 left-0 w-full z-50 bg-primary text-primary-foreground p-4 ${className}`}>
+      <div className="flex items-center justify-between pt-8">
         <div className="flex items-center gap-3">
           {showBack && (
             <Button
