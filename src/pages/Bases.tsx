@@ -18,6 +18,7 @@ import { useBases } from '../contexts/BasesContext';
 import { useNavigate } from 'react-router-dom';
 import { Base } from '../types';
 import { Spinner } from '../components/ui/spinner';
+import { formatNumber, formatCurrency } from '../utils/formatNumber';
 
 export default function Bases() {
   const { bases, deleteBase, loading } = useBases();
@@ -82,7 +83,7 @@ export default function Bases() {
                     {base.name}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-1">
-                    Frete: R$ {base.freight.toFixed(2)}
+                    Frete: {formatCurrency(base.freight)}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Distância: {base.distance} km

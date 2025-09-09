@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { useBases } from '../contexts/BasesContext';
 import { useToast } from '../hooks/use-toast';
+import { formatNumber, formatCurrency } from '../utils/formatNumber';
 
 export default function Calculator() {
   const { bases, showFreightPerKm } = useBases();
@@ -50,25 +51,26 @@ export default function Calculator() {
     });
   };
 
-  const shareViaWhatsApp = () => {
-    if (!result) return;
+const shareViaWhatsApp = () => {
+  if (!result) return;
 
-    const message = `Cálculo de Preço CIF
+  const message = `Cálculo de Preço CIF
 Energética Santa Helena
 
 Base: ${result.base}
-Preço FOB: R$ ${result.fobPrice.toFixed(2)}
-Frete: R$ ${result.freight.toFixed(2)}
-Distância: ${result.distance} km
-${showFreightPerKm ? `Valor do frete por km: R$ ${result.freightPerKm.toFixed(2)}` : ''}
-Preço CIF: R$ ${result.cifPrice.toFixed(2)}`;
+Preço FOB: ${formatCurrency(result.fobPrice)}
+Frete: ${formatCurrency(result.freight)}
+Distância: ${formatNumber(result.distance)} km
+${showFreightPerKm ? `Valor do frete por km: ${formatCurrency(result.freightPerKm)}` : ''}
+Preço CIF: ${formatCurrency(result.cifPrice)}`;
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
-    setShowShareDialog(false);
-  };
+  const encodedMessage = encodeURIComponent(message);
+  const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+  
+  window.open(whatsappUrl, '_blank');
+  setShowShareDialog(false);
+};
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -119,10 +121,10 @@ Preço CIF: R$ ${result.cifPrice.toFixed(2)}`;
           {selectedBase && (
             <div className="bg-muted/30 p-3 rounded-lg space-y-1">
               <p className="text-sm">
-                Frete: R$ {selectedBase.freight.toFixed(2)} por km
+                Frete: {formatCurrency(selectedBase.freight)} por km
               </p>
               <p className="text-sm">
-                Distância da base: {selectedBase.distance} km
+                Distância da base: {formatNumber(selectedBase.distance)} km
               </p>
             </div>
           )}
@@ -141,7 +143,7 @@ Preço CIF: R$ ${result.cifPrice.toFixed(2)}`;
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Preço CIF:</Label>
                 <div className="text-3xl font-bold text-primary">
-                  R$ {result.cifPrice.toFixed(2)}
+                  {formatCurrency(result.cifPrice)}
                 </div>
               </div>
 
@@ -170,13 +172,13 @@ Preço CIF: R$ ${result.cifPrice.toFixed(2)}`;
                 <div><strong>Cálculo de Preço CIF</strong></div>
                 <div><strong>Energética Santa Helena</strong></div>
                 <div>Base: {result.base}</div>
-                <div>Preço FOB: R$ {result.fobPrice.toFixed(2)}</div>
-                <div>Frete: R$ {result.freight.toFixed(2)}</div>
-                <div>Distância: {result.distance} km</div>
+                <div>Preço FOB: {formatCurrency(result.fobPrice)}</div>
+                <div>Frete: {formatCurrency(result.freight)}</div>
+                <div>Distância: {formatNumber(result.distance)} km</div>
                 {showFreightPerKm && (
-                  <div>Valor do frete por km: R$ {result.freightPerKm.toFixed(2)}</div>
+                  <div>Valor do frete por km: {formatCurrency(result.freightPerKm)}</div>
                 )}
-                <div><strong>Preço CIF: R$ {result.cifPrice.toFixed(2)}</strong></div>
+                <div><strong>Preço CIF: {formatCurrency(result.cifPrice)}</strong></div>
               </div>
               
               <div className="flex gap-2">

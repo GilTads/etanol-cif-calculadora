@@ -9,6 +9,7 @@ import { useToast } from '../hooks/use-toast';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import jsPDF from 'jspdf';
+import { formatNumber, formatCurrency } from '../utils/formatNumber';
 
 export default function Report() {
   const { bases, showFreightPerKm } = useBases();
@@ -18,7 +19,7 @@ export default function Report() {
   const updateFobPrice = () => {
     toast({
       title: "Preço FOB atualizado",
-      description: `Novo preço: R$ ${fobPrice}`
+      description: `Novo preço: ${formatNumber(parseFloat(fobPrice))}`
     });
   };
 
@@ -28,144 +29,185 @@ export default function Report() {
   };
 
   const shareViaWhatsApp = () => {
-    const fob = parseFloat(fobPrice);
-    let message = `Relatório Comparativo - Energética Santa Helena\n\nPreço FOB: R$ ${fob.toFixed(2)}\n\n`;
-    
-    bases.forEach(base => {
-      const cifPrice = calculateCIF(base);
-      const freightPerKm = base.freight / base.distance;
-      
-      message += `${base.name}\n`;
-      message += `Distância: ${base.distance} km\n`;
-      message += `Frete: R$ ${base.freight.toFixed(2)}\n`;
-      if (showFreightPerKm) {
-        message += `Frete/km: R$ ${freightPerKm.toFixed(2)}\n`;
-      }
-      message += `CIF: R$ ${cifPrice.toFixed(2)}\n\n`;
+  if (!bases || bases.length === 0) return;
+
+  // Ordena as bases por nome
+  const sortedBases = [...bases].sort((a, b) =>
+    a.name.localeCompare(b.name, 'pt-BR')
+  );
+
+  // Limite para Base
+  const MAX_NAME = 14;
+
+  // Truncar apenas a Base
+  const fitName = (text) => {
+    text = String(text);
+    return text.length > MAX_NAME ? text.substring(0, MAX_NAME - 1) + "…" : text;
+  };
+
+  // Cabeçalho
+  let message = `*Relatório Comparativo - Energética Santa Helena*\n\n`;
+  message += "```"; // início do bloco monoespaçado
+  message += "Base          Frete(R$) CIF(R$)\n";
+  message += "------------------------------\n";
+
+  // Linhas de dados
+  sortedBases.forEach(base => {
+    const cifPrice = parseFloat(fobPrice) + base.freight;
+
+    const name = fitName(base.name).padEnd(MAX_NAME, ' '); // alinhamento da Base
+    const freight = formatNumber(base.freight); // completo
+    const cif = formatNumber(cifPrice); // completo
+
+    // Frete inicia exatamente após Base + 1, sem espaçamento extra
+    message += `${name}|${freight}|${cif}\n`;
+  });
+
+  message += "```"; // fim do bloco monoespaçado
+
+  // Enviar para WhatsApp
+  const encodedMessage = encodeURIComponent(message);
+  const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+  window.open(whatsappUrl, '_blank');
+};
+
+
+
+const exportPDF = async () => {
+  try {
+    // --- Solicitar permissão de armazenamento (Android) ---
+    const permissions = await Filesystem.requestPermissions({
+      permissions: ['publicStorage'],
     });
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
-  };
-
-  const exportPDF = async () => {
-    try {
-      const doc = new jsPDF();
-      const fob = parseFloat(fobPrice);
-      
-      // Variáveis para controle da posição e margens
-      let yPos = 30; // Posição inicial Y
-      const margin = 20; // Margem
-      const lineHeight = 10; // Espaçamento entre as linhas
-      const pageHeight = doc.internal.pageSize.height;
-      const contentHeightLimit = pageHeight - (margin * 2);
-
-      // --- Cabeçalho do Relatório ---
-      doc.setFontSize(16);
-      doc.text('Relatório Comparativo', margin, yPos);
-      yPos += lineHeight;
-      doc.text('Energética Santa Helena', margin, yPos);
-      yPos += lineHeight * 2;
-      
-      doc.setFontSize(12);
-      doc.text(`Preço FOB: R$ ${fob.toFixed(2)}`, margin, yPos);
-      yPos += lineHeight * 2;
-
-      // --- Cabeçalho da Tabela ---
-      doc.setFontSize(10);
-      doc.text('Base', margin, yPos);
-      doc.text('Distância (km)', margin + 40, yPos);
-      doc.text('Frete (R$)', margin + 80, yPos);
-      if (showFreightPerKm) {
-        doc.text('Frete/km (R$)', margin + 120, yPos);
-      }
-      doc.text('CIF (R$)', margin + (showFreightPerKm ? 160 : 120), yPos);
-      yPos += lineHeight;
-      doc.line(margin, yPos - 2, doc.internal.pageSize.width - margin, yPos - 2);
-      yPos += lineHeight / 2;
-
-      // --- Dados da Tabela ---
-      bases.forEach(base => {
-        // Lógica de quebra de página
-        if (yPos + lineHeight * 2 > contentHeightLimit) {
-          doc.addPage();
-          yPos = margin;
-          doc.setFontSize(10);
-          doc.text('Base', margin, yPos);
-          doc.text('Distância (km)', margin + 40, yPos);
-          doc.text('Frete (R$)', margin + 80, yPos);
-          if (showFreightPerKm) {
-            doc.text('Frete/km (R$)', margin + 120, yPos);
-          }
-          doc.text('CIF (R$)', margin + (showFreightPerKm ? 160 : 120), yPos);
-          yPos += lineHeight;
-          doc.line(margin, yPos - 2, doc.internal.pageSize.width - margin, yPos - 2);
-          yPos += lineHeight / 2;
-        }
-
-        const freightPerKm = base.freight / base.distance;
-        const cifPrice = calculateCIF(base);
-        
-        doc.text(base.name.substring(0, 15), margin, yPos);
-        doc.text(base.distance.toString(), margin + 40, yPos);
-        doc.text(base.freight.toFixed(2), margin + 80, yPos);
-        if (showFreightPerKm) {
-          doc.text(freightPerKm.toFixed(2), margin + 120, yPos);
-        }
-        doc.text(cifPrice.toFixed(2), margin + (showFreightPerKm ? 160 : 120), yPos);
-        yPos += lineHeight;
+    if (permissions.publicStorage !== 'granted') {
+      toast({
+        title: 'Permissão Negada',
+        description: 'Não foi possível salvar o arquivo. Conceda a permissão de armazenamento nas configurações.',
+        variant: 'destructive',
       });
-      
-      // --- Rodapé ---
-      const now = new Date();
-      doc.setFontSize(8);
-      if (yPos + lineHeight * 3 > contentHeightLimit) {
+      return;
+    }
+
+    // --- 2️⃣ Criar PDF ---
+    const doc = new jsPDF();
+    const fob = parseFloat(fobPrice);
+
+    // Ordena as bases em ordem alfabética
+    const sortedBases = [...bases].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
+    let yPos = 30;
+    const margin = 20;
+    const lineHeight = 10;
+    const pageHeight = doc.internal.pageSize.height;
+    const contentHeightLimit = pageHeight - margin * 2;
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.text('Relatório Comparativo', margin, yPos);
+    yPos += lineHeight;
+    doc.text('Energética Santa Helena', margin, yPos);
+    yPos += lineHeight * 2;
+    doc.setFontSize(12);
+    doc.text(`Preço FOB: ${formatCurrency(fob)}`, margin, yPos);
+    yPos += lineHeight * 2;
+
+    // Cabeçalho da Tabela
+    doc.setFontSize(10);
+    doc.text('Base', margin, yPos);
+    doc.text('Frete (R$)', margin + 80, yPos);
+    if (showFreightPerKm) {
+      doc.text('Distância (km)', margin + 40, yPos);
+      doc.text('Frete/km (R$)', margin + 120, yPos);
+    }
+    doc.text('CIF (R$)', margin + (showFreightPerKm ? 160 : 120), yPos);
+    yPos += lineHeight;
+    doc.line(margin, yPos - 2, doc.internal.pageSize.width - margin, yPos - 2);
+    yPos += lineHeight / 2;
+
+    // Dados da tabela
+    sortedBases.forEach((base) => {
+      if (yPos + lineHeight * 2 > contentHeightLimit) {
         doc.addPage();
         yPos = margin;
+        doc.setFontSize(10);
+        doc.text('Base', margin, yPos);
+        doc.text('Frete (R$)', margin + 80, yPos);
+        if (showFreightPerKm) {
+          doc.text('Distância (km)', margin + 40, yPos);
+          doc.text('Frete/km (R$)', margin + 120, yPos);
+        }
+        doc.text('CIF (R$)', margin + (showFreightPerKm ? 160 : 120), yPos);
+        yPos += lineHeight;
+        doc.line(margin, yPos - 2, doc.internal.pageSize.width - margin, yPos - 2);
+        yPos += lineHeight / 2;
       }
-      doc.text(`Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR')}`, margin, yPos + (lineHeight * 2));
-      
-      // Converte o PDF para Base64
-      const pdfOutput = doc.output('datauristring');
-      const pdfData = pdfOutput.split(',')[1];
-      
-      const fileName = `relatorio-comparativo-${now.toISOString().split('T')[0]}.pdf`;
-      
-      // Salva o PDF
-      await Filesystem.writeFile({
-        path: fileName,
-        data: pdfData,
-        directory: Directory.Documents,
-      });
 
-      // Abre a caixa de diálogo para compartilhamento/visualização
-      const uriResult = await Filesystem.getUri({
-        directory: Directory.Documents,
-        path: fileName
-      });
+      const freightPerKm = base.freight / base.distance;
+      const cifPrice = fob + base.freight;
 
-      await Share.share({
-        title: 'Relatório Comparativo',
-        text: 'Confira o relatório em PDF que foi gerado.',
-        url: uriResult.uri,
-        dialogTitle: 'Compartilhar Relatório',
-      });
+      doc.text(base.name.substring(0, 15), margin, yPos);
+      doc.text(formatCurrency(base.freight), margin + 80, yPos);
+      if (showFreightPerKm) {
+        doc.text(formatNumber(base.distance), margin + 40, yPos);
+        doc.text(formatCurrency(freightPerKm), margin + 120, yPos);
+      }
+      doc.text(formatCurrency(cifPrice), margin + (showFreightPerKm ? 160 : 120), yPos);
+      yPos += lineHeight;
+    });
 
-      toast({
-        title: "PDF gerado com sucesso",
-        description: "O arquivo foi salvo e aberto para visualização."
-      });
-
-    } catch (error) {
-      console.error('Erro ao exportar/compartilhar PDF:', error);
-      toast({
-        title: "Erro ao exportar PDF",
-        description: "Houve um problema ao salvar ou abrir o arquivo."
-      });
+    // Rodapé
+    const now = new Date();
+    doc.setFontSize(8);
+    if (yPos + lineHeight * 3 > contentHeightLimit) {
+      doc.addPage();
+      yPos = margin;
     }
-  };
+    doc.text(
+      `Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR')}`,
+      margin,
+      yPos + lineHeight * 2
+    );
+
+    // Converte PDF para Base64
+    const pdfOutput = doc.output('datauristring');
+    const pdfData = pdfOutput.split(',')[1];
+    const fileName = `relatorio-comparativo-${now.toISOString().split('T')[0]}.pdf`;
+
+    // --- 3️⃣ Salvar arquivo ---
+    await Filesystem.writeFile({
+      path: fileName,
+      data: pdfData,
+      directory: Directory.Documents,
+    });
+
+    // --- 4️⃣ Compartilhar/abrir arquivo ---
+    const uriResult = await Filesystem.getUri({
+      directory: Directory.Documents,
+      path: fileName,
+    });
+
+    await Share.share({
+      title: 'Abrir Relatório',
+      text: '',
+      url: uriResult.uri,
+      dialogTitle: 'Abrir Relatório',
+    });
+
+    toast({
+      title: 'PDF gerado com sucesso',
+      description: 'O arquivo foi salvo e aberto para visualização.',
+    });
+  } catch (error) {
+    console.error('Erro ao exportar/compartilhar PDF:', error);
+    toast({
+      title: 'Erro ao exportar PDF',
+      description: 'Houve um problema ao salvar ou abrir o arquivo: ' + error,
+    });
+  }
+};
+
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -203,8 +245,8 @@ export default function Report() {
             <div className="grid grid-cols-4 gap-2 text-xs font-medium">
               <div>Base</div>
               <div className="text-center">Distância (km)</div>
-              <div className="text-center">Frete (R$)</div>
-              <div className="text-center">Frete/km (R$)</div>
+              <div className="text-center">Frete</div>
+              <div className="text-center">Preço CIF</div>
             </div>
           </div>
           
@@ -217,9 +259,9 @@ export default function Report() {
                 <div key={base.id} className="p-3">
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div className="font-medium">{base.name}</div>
-                    <div className="text-center">{base.distance}</div>
-                    <div className="text-center">{base.freight.toFixed(2)}</div>
-                    <div className="text-center">{cifPrice.toFixed(2)}</div>
+                   <div className="text-center">{formatNumber(base.distance)}</div>
+                  <div className="text-center">{formatCurrency(base.freight)}</div>
+                  <div className="text-center">{formatCurrency(cifPrice)}</div>
                   </div>
                 </div>
               );
