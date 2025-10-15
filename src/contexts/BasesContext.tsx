@@ -17,7 +17,7 @@ const BasesContext = createContext<BasesContextType | undefined>(undefined);
 
 export function BasesProvider({ children }: { children: React.ReactNode }) {
   const [bases, setBases] = useState<Base[]>([]);
-  const [showFreightPerKm, setShowFreightPerKm] = useState(true);
+  const [showFreightPerKm, setShowFreightPerKm] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

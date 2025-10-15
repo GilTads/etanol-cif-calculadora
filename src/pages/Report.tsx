@@ -76,9 +76,7 @@ export default function Report() {
 const exportPDF = async () => {
   try {
     // --- Solicitar permissão de armazenamento (Android) ---
-    const permissions = await Filesystem.requestPermissions({
-      permissions: ['publicStorage'],
-    });
+    const permissions = await Filesystem.requestPermissions();
 
     if (permissions.publicStorage !== 'granted') {
       toast({
