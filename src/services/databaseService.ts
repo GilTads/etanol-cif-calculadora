@@ -60,17 +60,8 @@ class DatabaseServiceImpl implements DatabaseService {
         }
       }
 
-      // Migrate settings - only if not already set
-      const existingSetting = await this.getSetting('showFreightPerKm');
-      if (existingSetting === null) {
-        const storedSettings = localStorage.getItem('santahelena-settings');
-        if (storedSettings) {
-          const settings = JSON.parse(storedSettings);
-          await this.setSetting('showFreightPerKm', JSON.stringify(settings.showFreightPerKm ?? false));
-        } else {
-          await this.setSetting('showFreightPerKm', JSON.stringify(false));
-        }
-      }
+      // Settings are now managed directly by the database service
+      // No migration needed - defaults to false when not set
     } catch (error) {
       console.error('Error migrating from localStorage:', error);
     }
