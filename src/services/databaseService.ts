@@ -60,13 +60,16 @@ class DatabaseServiceImpl implements DatabaseService {
         }
       }
 
-      // Migrate settings
-      const storedSettings = localStorage.getItem('santahelena-settings');
-      if (storedSettings) {
-        const settings = JSON.parse(storedSettings);
-        await this.setSetting('showFreightPerKm', JSON.stringify(settings.showFreightPerKm ?? true));
-      } else {
-        await this.setSetting('showFreightPerKm', JSON.stringify(true));
+      // Migrate settings - only if not already set
+      const existingSetting = await this.getSetting('showFreightPerKm');
+      if (existingSetting === null) {
+        const storedSettings = localStorage.getItem('santahelena-settings');
+        if (storedSettings) {
+          const settings = JSON.parse(storedSettings);
+          await this.setSetting('showFreightPerKm', JSON.stringify(settings.showFreightPerKm ?? false));
+        } else {
+          await this.setSetting('showFreightPerKm', JSON.stringify(false));
+        }
       }
     } catch (error) {
       console.error('Error migrating from localStorage:', error);
