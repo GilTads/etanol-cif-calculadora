@@ -30,13 +30,12 @@ export function BasesProvider({ children }: { children: React.ReactNode }) {
         setBases(loadedBases);
         
         const showFreightSetting = await databaseService.getSetting('showFreightPerKm');
-        if (showFreightSetting !== null) {
-          setShowFreightPerKm(JSON.parse(showFreightSetting));
-        } else {
-          // Se não existir valor salvo, define como false e salva no banco
-          setShowFreightPerKm(false);
-          await databaseService.setSetting('showFreightPerKm', JSON.stringify(false));
-        }
+        console.log('🔍 DEBUG - Valor lido do banco:', showFreightSetting);
+        
+        // SEMPRE define como false por padrão, ignorando valores antigos
+        setShowFreightPerKm(false);
+        await databaseService.setSetting('showFreightPerKm', JSON.stringify(false));
+        console.log('✅ Valor resetado para false');
       } catch (error) {
         console.error('Error initializing database:', error);
       } finally {
