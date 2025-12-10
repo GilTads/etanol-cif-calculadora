@@ -13,11 +13,12 @@ interface BasesContextType {
   loading: boolean;
 }
 
+const DEFAULT_SHOW_FREIGHT_PER_KM = false;
 const BasesContext = createContext<BasesContextType | undefined>(undefined);
 
 export function BasesProvider({ children }: { children: React.ReactNode }) {
   const [bases, setBases] = useState<Base[]>([]);
-  const [showFreightPerKm, setShowFreightPerKm] = useState(false);
+  const [showFreightPerKm, setShowFreightPerKm] = useState(DEFAULT_SHOW_FREIGHT_PER_KM);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,16 +31,19 @@ export function BasesProvider({ children }: { children: React.ReactNode }) {
         setBases(loadedBases);
         
         const showFreightSetting = await databaseService.getSetting('showFreightPerKm');
-        console.log('🔍 Valor do banco:', showFreightSetting);
-        
+
         if (showFreightSetting !== null) {
-          const value = JSON.parse(showFreightSetting);
-          console.log('✅ Usando valor do banco:', value);
-          setShowFreightPerKm(value);
+          try {
+            const value = JSON.parse(showFreightSetting);
+            setShowFreightPerKm(Boolean(value));
+          } catch (error) {
+            console.warn('Invalid showFreightPerKm setting found, resetting to default.', error);
+            setShowFreightPerKm(DEFAULT_SHOW_FREIGHT_PER_KM);
+            await databaseService.setSetting('showFreightPerKm', JSON.stringify(DEFAULT_SHOW_FREIGHT_PER_KM));
+          }
         } else {
-          console.log('⚠️ Nenhum valor no banco, usando padrão: false');
-          setShowFreightPerKm(false);
-          await databaseService.setSetting('showFreightPerKm', JSON.stringify(false));
+          setShowFreightPerKm(DEFAULT_SHOW_FREIGHT_PER_KM);
+          await databaseService.setSetting('showFreightPerKm', JSON.stringify(DEFAULT_SHOW_FREIGHT_PER_KM));
         }
       } catch (error) {
         console.error('Error initializing database:', error);
@@ -53,7 +57,9 @@ export function BasesProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading) {
-      databaseService.setSetting('showFreightPerKm', JSON.stringify(showFreightPerKm));
+      databaseService
+        .setSetting('showFreightPerKm', JSON.stringify(showFreightPerKm))
+        .catch(error => console.error('Error saving showFreightPerKm setting:', error));
     }
   }, [showFreightPerKm, loading]);
 
