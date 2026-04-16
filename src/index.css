@@ -6,14 +6,11 @@
 All colors MUST be HSL.
 */
 
-.content-container {
-  padding-top: 110px; /* Ajuste este valor conforme a altura do seu header */
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -112,5 +109,12 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .content-container {
+    padding-top: 110px;
+    padding-bottom: calc(1.5rem + var(--safe-area-bottom));
   }
 }

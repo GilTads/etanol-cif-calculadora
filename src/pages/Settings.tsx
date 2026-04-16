@@ -3,9 +3,11 @@ import { Header } from '../components/Header';
 import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { useBases } from '../contexts/BasesContext';
+import appPackage from '../../package.json';
 
 export default function Settings() {
   const { showFreightPerKm, setShowFreightPerKm } = useBases();
+  const appVersion = `v${appPackage.version}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,7 +36,7 @@ export default function Settings() {
           <div className="space-y-1 text-sm text-muted-foreground">
             <p><strong>Cálculo de Preços CIF para Etanol</strong></p>
             <p>Energética Santa Helena</p>
-            <p>Versão 1.0</p>
+            <p>Versão {appVersion}</p>
           </div>
         </div>
       </div>
